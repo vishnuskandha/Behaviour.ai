@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BehaviourAI – Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #09090b; color: #f4f4f5; }
+    .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #09090b; }
+    ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+  </style>
+</head>
+<body class="h-screen flex overflow-hidden antialiased selection:bg-purple-500/30">
+
+  <!-- Glowing orb background (global) -->
+  <div class="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-900/10 blur-[150px] pointer-events-none"></div>
+
+  <!-- Sidebar -->
+  <aside class="w-64 glass border-r border-white/5 flex flex-col z-20">
+    <div class="p-6 border-b border-white/5">
+      <a href="/" class="text-xl font-bold tracking-tight text-white flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <span class="text-2xl">🧠</span> Behaviour<span class="text-purple-400">AI</span>
+      </a>
+    </div>
+    
+    <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+      <p class="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Analytics</p>
+      <a href="#overview" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-purple-500/10 text-purple-300 font-medium transition-colors">
+        <span class="opacity-80">📊</span> Overview
+      </a>
+      <a href="#clusters" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 font-medium transition-colors">
+        <span class="opacity-80">🔵</span> Clusters
+      </a>
+      <a href="#trends" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 font-medium transition-colors">
+        <span class="opacity-80">📈</span> Trends
+      </a>
+      
+      <p class="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-6">Machine Learning</p>
+      <a href="#predict" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 font-medium transition-colors">
+        <span class="opacity-80">🤖</span> Predictor
+      </a>
+    </nav>
+
+    <div class="p-4 border-t border-white/5">
+      <button id="trainBtn" class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium shadow-lg shadow-purple-900/20 transition-all hover:-translate-y-0.5" onclick="trainModel()">
+        <span>⚡</span> Train Model
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto relative z-10 scroll-smooth">
+    <div class="max-w-7xl mx-auto p-8 lg:p-12">
+      
+      <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-12">
+        <div>
+          <h2 class="text-3xl font-bold text-white tracking-tight">Business Dashboard</h2>
+          <p class="text-gray-400 mt-1">Real-time overview of customer segments and behaviours.</p>
+        </div>
+        <div class="flex items-center gap-3 self-start md:self-auto">
+          <span id="healthStatus" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Connecting...
+          </span>
+          <span id="trainStatus" class="hidden text-xs font-medium px-3 py-1 rounded-full border"></span>
+        </div>
+      </header>
+
+      <!-- OVERVIEW -->
+      <section id="overview" class="mb-16 scroll-mt-8">
+        <h3 class="text-xl font-semibold text-white mb-6 flex items-center gap-2"><span class="text-purple-400">#</span> Key Metrics</h3>
+        <div id="statsError"></div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div class="glass p-6 rounded-2xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-10 text-4xl group-hover:scale-110 transition-transform">👥</div>
+            <p class="text-sm font-medium text-gray-400 mb-1">Total Users</p>
+            <p class="text-3xl font-bold text-white" id="totalUsers">—</p>
+          </div>
+          <div class="glass p-6 rounded-2xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-10 text-4xl group-hover:scale-110 transition-transform">🖱️</div>
+            <p class="text-sm font-medium text-gray-400 mb-1">Avg Clicks</p>
+            <p class="text-3xl font-bold text-purple-400" id="avgClicks">—</p>
+          </div>
+          <div class="glass p-6 rounded-2xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-10 text-4xl group-hover:scale-110 transition-transform">⏱️</div>
+            <p class="text-sm font-medium text-gray-400 mb-1">Avg Time (min)</p>
+            <p class="text-3xl font-bold text-blue-400" id="avgTime">—</p>
+          </div>
+          <div class="glass p-6 rounded-2xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-10 text-4xl group-hover:scale-110 transition-transform">🛍️</div>
+            <p class="text-sm font-medium text-gray-400 mb-1">Avg Purchases</p>
+            <p class="text-3xl font-bold text-emerald-400" id="avgPurchases">—</p>
+          </div>
+        </div>
+
+        <div class="glass p-8 rounded-2xl border-t border-l border-white/5 shadow-2xl">
+          <h4 class="text-sm font-semibold text-gray-300 mb-6 uppercase tracking-wider">Segment Distribution</h4>
+          <div class="h-64 relative flex items-center justify-center">
+             <canvas id="segmentChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-16">
+        <!-- CLUSTERS -->
+        <section id="clusters" class="scroll-mt-8">
+          <div class="glass p-8 rounded-2xl h-full border-t border-l border-white/5 shadow-2xl">
+            <h3 class="text-lg font-semibold text-white mb-6 flex items-center gap-2"><span class="text-blue-400">#</span> Behaviour Clusters</h3>
+            <div id="clusterError"></div>
+            <div class="h-[300px] w-full relative">
+              <canvas id="clusterChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- TRENDS -->
+        <section id="trends" class="scroll-mt-8">
+          <div class="glass p-8 rounded-2xl h-full border-t border-l border-white/5 shadow-2xl">
+            <h3 class="text-lg font-semibold text-white mb-6 flex items-center gap-2"><span class="text-emerald-400">#</span> Monthly Trends</h3>
+            <div id="trendsError"></div>
+            <div class="h-[300px] w-full relative">
+              <canvas id="trendChart"></canvas>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- PREDICTOR -->
+      <section id="predict" class="mb-20 scroll-mt-8">
+        <h3 class="text-xl font-semibold text-white mb-6 flex items-center gap-2"><span class="text-amber-400">#</span> ML Predictor</h3>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="glass p-8 rounded-2xl border-t border-l border-white/5 shadow-2xl">
+            <p class="text-sm text-gray-400 mb-6">Enter customer metrics to predict their segment dynamically.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+              <div>
+                <label class="block text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Clicks</label>
+                <input type="number" id="p_clicks" value="45" min="0" class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-mono">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Time (m)</label>
+                <input type="number" id="p_time" value="25" min="0" class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-mono">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Purchases</label>
+                <input type="number" id="p_purchases" value="5" min="0" class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-mono">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Page Views</label>
+                <input type="number" id="p_pageviews" value="30" min="0" class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-mono">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Cart Adds</label>
+                <input type="number" id="p_cart" value="7" min="0" class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-mono">
+              </div>
+            </div>
+            
+            <button onclick="predict()" class="w-full py-3 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 text-white font-medium transition-colors">
+              Predict Segment
+            </button>
+          </div>
+
+          <div id="predictResult" class="glass p-8 rounded-2xl border-t border-l border-white/5 flex flex-col justify-center items-center text-center shadow-2xl min-h-[300px]">
+            <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 text-2xl">✨</div>
+            <p class="text-gray-400">Fill in the metrics and generate a prediction to see insights and recommendations here.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <style>
+    /* Add smooth native scrolling for the side nav anchor links */
+    html { scroll-behavior: smooth; }
+  </style>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
