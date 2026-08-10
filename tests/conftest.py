@@ -1,6 +1,15 @@
 """Shared pytest fixtures for BehaviourAI."""
 
+import sys
+from pathlib import Path
+
 import pytest
+
+# Ensure the repository root is importable regardless of how pytest is invoked
+# (bare `pytest` vs `python -m pytest`).
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 _API_KEY = "demo-secret-key"
 
