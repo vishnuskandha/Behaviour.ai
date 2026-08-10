@@ -25,7 +25,7 @@ jobs:
     - name: Type check with mypy
       run: mypy .
     - name: Security scan
-      run: bandit -r app.py ml/ data/ -c .bandit || true
+      run: bandit -r app.py ml/ data/ -c .bandit
     - name: Test with pytest
       run: |
         pytest tests/ --cov=app --cov=ml --cov-report=xml

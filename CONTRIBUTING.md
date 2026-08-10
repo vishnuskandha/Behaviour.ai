@@ -6,7 +6,7 @@ Thank you for your interest in contributing to BehaviourAI! We welcome contribut
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/behaviour_analytics.git
+   git clone https://github.com/vishnuskandha/Behaviour.ai.git
    cd Behaviour.ai
    ```
 

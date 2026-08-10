@@ -3,11 +3,10 @@ BehaviourAI - Customer Behaviour Analytics Platform
 
 Flask application providing ML-powered customer segmentation and analytics.
 """
+
 import logging
-import json
 import os
 from typing import Dict, Any, List, Optional
-from pathlib import Path
 
 from flask import Flask, render_template, jsonify, request
 import pandas as pd
@@ -16,13 +15,19 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import joblib
 
 from config import (
-    DATA_FILE, REAL_DATA_FILE, MODEL_FILE, SCALER_FILE,
-    FEATURES, TARGET, N_ESTIMATORS, TEST_SIZE, RANDOM_STATE,
-    KMEANS_N_CLUSTERS, KMEANS_N_INIT, SEGMENT_MAP, RECOMMENDATIONS,
-    CLUSTER_FEATURES, MAX_CLUSTER_SAMPLE, LOG_LEVEL, USE_REAL_DATA, DATABASE_URL
+    FEATURES,
+    TARGET,
+    TEST_SIZE,
+    RANDOM_STATE,
+    KMEANS_N_CLUSTERS,
+    KMEANS_N_INIT,
+    SEGMENT_MAP,
+    RECOMMENDATIONS,
+    CLUSTER_FEATURES,
+    MAX_CLUSTER_SAMPLE,
+    LOG_LEVEL,
 )
 from data.database import DatabaseManager
 from ml.pipeline import CustomerSegmentationPipeline
@@ -31,7 +36,7 @@ from ml.registry import ModelRegistry
 # Configure logging
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -44,7 +49,7 @@ class BehaviourAnalyticsApp:
 
     def __init__(self):
         self.app = Flask(__name__)
-        self._db: Optional[DatabaseManager] = DatabaseManager()
+        self._db: DatabaseManager = DatabaseManager()
         self._df: Optional[pd.DataFrame] = None
         self._registry = ModelRegistry()
         self._kmeans_scaler: Optional[StandardScaler] = None
@@ -102,10 +107,7 @@ class BehaviourAnalyticsApp:
 
             # Train/test split
             X_train, X_test, y_train, y_test = train_test_split(
-                X, y,
-                test_size=TEST_SIZE,
-                random_state=RANDOM_STATE,
-                stratify=y
+                X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y
             )
 
             # Train model
@@ -122,10 +124,16 @@ class BehaviourAnalyticsApp:
 
             metrics = {
                 "accuracy": acc_percent,
-                "precision_macro": round((report.get("macro avg", {})).get("precision", 0) * 100, 2),
-                "recall_macro": round((report.get("macro avg", {})).get("recall", 0) * 100, 2),
-                "f1_macro": round((report.get("macro avg", {})).get("f1-score", 0) * 100, 2),
-                "confusion_matrix": conf_matrix
+                "precision_macro": round(
+                    (report.get("macro avg", {})).get("precision", 0) * 100, 2
+                ),
+                "recall_macro": round(
+                    (report.get("macro avg", {})).get("recall", 0) * 100, 2
+                ),
+                "f1_macro": round(
+                    (report.get("macro avg", {})).get("f1-score", 0) * 100, 2
+                ),
+                "confusion_matrix": conf_matrix,
             }
 
             # Persist model
@@ -142,7 +150,7 @@ class BehaviourAnalyticsApp:
                 "total_records": len(df),
                 "train_size": len(X_train),
                 "test_size": len(X_test),
-                "version": version
+                "version": version,
             }
 
         except Exception as e:
@@ -150,7 +158,7 @@ class BehaviourAnalyticsApp:
             return {
                 "status": "error",
                 "error": str(e),
-                "message": "Model training failed"
+                "message": "Model training failed",
             }
 
     def predict(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -170,7 +178,9 @@ class BehaviourAnalyticsApp:
                 logger.info("No persisted model found, training new model...")
                 train_result = self.train_model()
                 if train_result["status"] != "success":
-                    raise RuntimeError(f"Model training failed: {train_result.get('error')}")
+                    raise RuntimeError(
+                        f"Model training failed: {train_result.get('error')}"
+                    )
                 active_info = self._registry.get_active()
 
             pipeline = active_info["pipeline"]
@@ -179,13 +189,17 @@ class BehaviourAnalyticsApp:
             validated_data = self._validate_prediction_input(data)
 
             # Prepare feature dataframe
-            feature_df = pd.DataFrame([{
-                "clicks": validated_data["clicks"],
-                "time_spent": validated_data["time_spent"],
-                "purchase_count": validated_data["purchase_count"],
-                "page_views": validated_data["page_views"],
-                "cart_additions": validated_data["cart_additions"]
-            }])
+            feature_df = pd.DataFrame(
+                [
+                    {
+                        "clicks": validated_data["clicks"],
+                        "time_spent": validated_data["time_spent"],
+                        "purchase_count": validated_data["purchase_count"],
+                        "page_views": validated_data["page_views"],
+                        "cart_additions": validated_data["cart_additions"],
+                    }
+                ]
+            )
 
             # Predict
             pred = pipeline.predict(feature_df)[0]
@@ -200,23 +214,15 @@ class BehaviourAnalyticsApp:
                 "segment": segment,
                 "confidence": confidence,
                 "recommendations": recommendations,
-                "version": active_info.get("version")
+                "version": active_info.get("version"),
             }
 
         except ValueError as e:
             logger.warning(f"Invalid input for prediction: {e}")
-            return {
-                "status": "error",
-                "error": str(e),
-                "message": "Invalid input data"
-            }
+            return {"status": "error", "error": str(e), "message": "Invalid input data"}
         except Exception as e:
             logger.error(f"Prediction failed: {e}", exc_info=True)
-            return {
-                "status": "error",
-                "error": str(e),
-                "message": "Prediction failed"
-            }
+            return {"status": "error", "error": str(e), "message": "Prediction failed"}
 
     def _validate_prediction_input(self, data: Dict[str, Any]) -> Dict[str, float]:
         """
@@ -252,11 +258,13 @@ class BehaviourAnalyticsApp:
                 "time_spent": 1440,  # 24 hours in minutes
                 "purchase_count": 100,
                 "page_views": 1000,
-                "cart_additions": 100
+                "cart_additions": 100,
             }
 
             if value > max_values[field]:
-                raise ValueError(f"Field '{field}' exceeds maximum value ({max_values[field]})")
+                raise ValueError(
+                    f"Field '{field}' exceeds maximum value ({max_values[field]})"
+                )
 
             validated[field] = value
 
@@ -272,7 +280,9 @@ class BehaviourAnalyticsApp:
             logger.error(f"Failed to calculate statistics: {e}")
             raise
 
-    def get_clusters(self, max_points: int = MAX_CLUSTER_SAMPLE) -> List[Dict[str, Any]]:
+    def get_clusters(
+        self, max_points: int = MAX_CLUSTER_SAMPLE
+    ) -> List[Dict[str, Any]]:
         """
         Perform K-Means clustering on behavioral features.
 
@@ -300,24 +310,33 @@ class BehaviourAnalyticsApp:
             kmeans = KMeans(
                 n_clusters=KMEANS_N_CLUSTERS,
                 random_state=RANDOM_STATE,
-                n_init=KMEANS_N_INIT
+                n_init=KMEANS_N_INIT,
             )
             labels = kmeans.fit_predict(X_scaled)
 
             # Build results (limit to max_points for performance)
             result = []
             sample_size = min(len(df), max_points)
-            indices = np.random.choice(len(df), size=sample_size, replace=False) if len(df) > max_points else range(len(df))
+            sample_indices: Any = (
+                np.random.choice(len(df), size=sample_size, replace=False)
+                if len(df) > max_points
+                else range(len(df))
+            )
 
-            for i in indices:
-                result.append({
-                    "x": float(df["clicks"].iloc[i]),
-                    "y": float(df["time_spent"].iloc[i]),
-                    "cluster": int(labels[i]),
-                    "user_id": str(df["user_id"].iloc[i])
-                })
+            for i in sample_indices:
+                result.append(
+                    {
+                        "x": float(df["clicks"].iloc[i]),
+                        "y": float(df["time_spent"].iloc[i]),
+                        "cluster": int(labels[i]),
+                        "user_id": str(df["user_id"].iloc[i]),
+                    }
+                )
 
-            logger.info(f"Clustering completed: {len(result)} points, {KMEANS_N_CLUSTERS} clusters")
+            logger.info(
+                f"Clustering completed: {len(result)} points, "
+                f"{KMEANS_N_CLUSTERS} clusters"
+            )
             return result
 
         except Exception as e:
@@ -339,10 +358,23 @@ class BehaviourAnalyticsApp:
 
         @self.app.before_request
         def require_api_key():
-            if request.path.startswith('/api/') and request.path not in ('/api/health', '/api/info', '/api/docs'):
+            if request.path.startswith("/api/") and request.path not in (
+                "/api/health",
+                "/api/info",
+                "/api/docs",
+            ):
                 from config import API_KEY
+
                 if API_KEY and request.headers.get("X-API-Key") != API_KEY:
-                    return jsonify({"status": "error", "message": "Unauthorized: Invalid or missing API Key"}), 401
+                    return (
+                        jsonify(
+                            {
+                                "status": "error",
+                                "message": "Unauthorized: Invalid or missing API Key",
+                            }
+                        ),
+                        401,
+                    )
 
         @self.app.after_request
         def track_metrics(response):
@@ -355,11 +387,13 @@ class BehaviourAnalyticsApp:
         def admin_metrics():
             """Monitoring dashboard metrics."""
             active_info = self._registry.get_active()
-            return jsonify({
-                "status": "success",
-                "metrics": self._metrics,
-                "model_version": active_info["version"] if active_info else None
-            })
+            return jsonify(
+                {
+                    "status": "success",
+                    "metrics": self._metrics,
+                    "model_version": active_info["version"] if active_info else None,
+                }
+            )
 
         @self.app.route("/")
         def index():
@@ -385,11 +419,16 @@ class BehaviourAnalyticsApp:
                 return jsonify(result), status_code
             except Exception as e:
                 logger.error(f"Training endpoint error: {e}", exc_info=True)
-                return jsonify({
-                    "status": "error",
-                    "error": str(e),
-                    "message": "Training failed"
-                }), 500
+                return (
+                    jsonify(
+                        {
+                            "status": "error",
+                            "error": str(e),
+                            "message": "Training failed",
+                        }
+                    ),
+                    500,
+                )
 
         @self.app.route("/api/stats")
         def api_stats():
@@ -399,11 +438,16 @@ class BehaviourAnalyticsApp:
                 return jsonify(stats)
             except Exception as e:
                 logger.error(f"Stats endpoint error: {e}")
-                return jsonify({
-                    "status": "error",
-                    "error": str(e),
-                    "message": "Failed to calculate stats"
-                }), 500
+                return (
+                    jsonify(
+                        {
+                            "status": "error",
+                            "error": str(e),
+                            "message": "Failed to calculate stats",
+                        }
+                    ),
+                    500,
+                )
 
         @self.app.route("/api/cluster")
         def api_cluster():
@@ -413,11 +457,16 @@ class BehaviourAnalyticsApp:
                 return jsonify(result)
             except Exception as e:
                 logger.error(f"Cluster endpoint error: {e}")
-                return jsonify({
-                    "status": "error",
-                    "error": str(e),
-                    "message": "Clustering failed"
-                }), 500
+                return (
+                    jsonify(
+                        {
+                            "status": "error",
+                            "error": str(e),
+                            "message": "Clustering failed",
+                        }
+                    ),
+                    500,
+                )
 
         @self.app.route("/api/trends")
         def api_trends():
@@ -427,11 +476,16 @@ class BehaviourAnalyticsApp:
                 return jsonify(trends)
             except Exception as e:
                 logger.error(f"Trends endpoint error: {e}")
-                return jsonify({
-                    "status": "error",
-                    "error": str(e),
-                    "message": "Failed to load trends"
-                }), 500
+                return (
+                    jsonify(
+                        {
+                            "status": "error",
+                            "error": str(e),
+                            "message": "Failed to load trends",
+                        }
+                    ),
+                    500,
+                )
 
         @self.app.route("/api/predict", methods=["POST"])
         def api_predict():
@@ -453,11 +507,16 @@ class BehaviourAnalyticsApp:
             try:
                 data = request.get_json()
                 if not data:
-                    return jsonify({
-                        "status": "error",
-                        "error": "No JSON data provided",
-                        "message": "Request body must be JSON"
-                    }), 400
+                    return (
+                        jsonify(
+                            {
+                                "status": "error",
+                                "error": "No JSON data provided",
+                                "message": "Request body must be JSON",
+                            }
+                        ),
+                        400,
+                    )
 
                 result = self.predict(data)
 
@@ -469,21 +528,28 @@ class BehaviourAnalyticsApp:
 
             except Exception as e:
                 logger.error(f"Prediction endpoint error: {e}", exc_info=True)
-                return jsonify({
-                    "status": "error",
-                    "error": str(e),
-                    "message": "Prediction failed"
-                }), 500
+                return (
+                    jsonify(
+                        {
+                            "status": "error",
+                            "error": str(e),
+                            "message": "Prediction failed",
+                        }
+                    ),
+                    500,
+                )
 
         @self.app.route("/api/health")
         def health_check():
             """Health check endpoint for monitoring."""
-            return jsonify({
-                "status": "healthy",
-                "service": "behaviour-analytics",
-                "data_loaded": self._df is not None,
-                "model_loaded": self._registry.get_active() is not None
-            })
+            return jsonify(
+                {
+                    "status": "healthy",
+                    "service": "behaviour-analytics",
+                    "data_loaded": self._df is not None,
+                    "model_loaded": self._registry.get_active() is not None,
+                }
+            )
 
         @self.app.route("/api/model-info")
         def model_info():
@@ -491,35 +557,41 @@ class BehaviourAnalyticsApp:
             active_info = self._registry.get_active()
             if not active_info:
                 return jsonify({"status": "error", "message": "No active model"}), 404
-                
-            return jsonify({
-                "status": "success",
-                "version": active_info["version"],
-                "metrics": active_info["metadata"].get("metrics", {}),
-                "created_at": active_info["metadata"].get("created_at")
-            })
+
+            return jsonify(
+                {
+                    "status": "success",
+                    "version": active_info["version"],
+                    "metrics": active_info["metadata"].get("metrics", {}),
+                    "created_at": active_info["metadata"].get("created_at"),
+                }
+            )
 
         @self.app.route("/api/info")
         def api_info():
             """API information and capabilities."""
-            return jsonify({
-                "name": "BehaviourAI Analytics API",
-                "version": "1.0.0",
-                "features": FEATURES,
-                "target": TARGET,
-                "segments": SEGMENT_MAP,
-                "endpoints": {
-                    "/api/train": "POST - Train model",
-                    "/api/stats": "GET - Aggregate statistics",
-                    "/api/cluster": "GET - Clustering results",
-                    "/api/trends": "GET - Monthly trends",
-                    "/api/predict": "POST - Predict segment",
-                    "/api/health": "GET - Health check",
-                    "/api/info": "GET - API documentation"
+            return jsonify(
+                {
+                    "name": "BehaviourAI Analytics API",
+                    "version": "1.0.0",
+                    "features": FEATURES,
+                    "target": TARGET,
+                    "segments": SEGMENT_MAP,
+                    "endpoints": {
+                        "/api/train": "POST - Train model",
+                        "/api/stats": "GET - Aggregate statistics",
+                        "/api/cluster": "GET - Clustering results",
+                        "/api/trends": "GET - Monthly trends",
+                        "/api/predict": "POST - Predict segment",
+                        "/api/health": "GET - Health check",
+                        "/api/info": "GET - API documentation",
+                    },
                 }
-            })
+            )
 
-    def run(self, host: str = "0.0.0.0", port: int = 5000, debug: bool = False) -> None:
+    def run(
+        self, host: str = "127.0.0.1", port: int = 5000, debug: bool = False
+    ) -> None:
         """Run the Flask application."""
         logger.info(f"Starting BehaviourAnalyticsApp on {host}:{port} (debug={debug})")
         self.app.run(host=host, port=port, debug=debug)
@@ -531,4 +603,5 @@ app = application.app  # Expose for gunicorn and testing
 
 
 if __name__ == "__main__":
-    application.run(debug=True, port=5000)
+    flask_debug = os.getenv("FLASK_DEBUG", "false").lower() in ("true", "1", "yes")
+    application.run(debug=flask_debug, port=5000)

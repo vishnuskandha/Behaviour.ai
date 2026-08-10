@@ -24,9 +24,10 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from config import DATABASE_URL, USE_REAL_DATA, DATA_FILE, REAL_DATA_FILE
-from data.database import DatabaseManager
-import pandas as pd
+from config import DATABASE_URL, USE_REAL_DATA, DATA_FILE, REAL_DATA_FILE  # noqa: E402
+from data.database import DatabaseManager  # noqa: E402
+import pandas as pd  # noqa: E402
+
 
 def run_migrations():
     """Run Alembic migrations to bring database to latest schema."""
@@ -50,6 +51,7 @@ def run_migrations():
         print(f"[DB ERROR] Migration failed: {e}")
         return False
 
+
 def seed_database(db: DatabaseManager, data_path: Path, clear_first: bool = False):
     """Load data from CSV into database."""
     try:
@@ -57,6 +59,7 @@ def seed_database(db: DatabaseManager, data_path: Path, clear_first: bool = Fals
             print(f"[DB] Data file not found: {data_path}")
             print("[DB] Generating synthetic data...")
             from data.generate_data import generate_sample_data
+
             generate_sample_data(DATA_FILE)
             data_path = DATA_FILE
 
@@ -78,13 +81,21 @@ def seed_database(db: DatabaseManager, data_path: Path, clear_first: bool = Fals
     except Exception as e:
         print(f"[DB ERROR] Failed to seed database: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Initialize and seed BehaviourAI database")
-    parser.add_argument('--clear', action='store_true', help='Clear existing data before seeding')
-    parser.add_argument('--no-seed', action='store_true', help='Skip data seeding (migrations only)')
+    parser = argparse.ArgumentParser(
+        description="Initialize and seed BehaviourAI database"
+    )
+    parser.add_argument(
+        "--clear", action="store_true", help="Clear existing data before seeding"
+    )
+    parser.add_argument(
+        "--no-seed", action="store_true", help="Skip data seeding (migrations only)"
+    )
     args = parser.parse_args()
 
     print("=" * 60)
@@ -92,7 +103,11 @@ def main():
     print("=" * 60)
 
     # Step 1: Run migrations
-    migration_success = run_migrations()
+    migrations_ok = run_migrations()
+    if not migrations_ok:
+        print(
+            "[DB] [WARN] Migrations skipped or failed; continuing with existing schema"
+        )
 
     # Step 2: Seed data (if requested)
     if not args.no_seed:
@@ -115,6 +130,7 @@ def main():
 
     print("=" * 60)
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

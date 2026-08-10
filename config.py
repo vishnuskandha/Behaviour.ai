@@ -1,6 +1,7 @@
 """
 Application configuration and constants.
 """
+
 import os
 from pathlib import Path
 
@@ -28,29 +29,21 @@ KMEANS_N_CLUSTERS = 3
 KMEANS_N_INIT = 10
 
 # Segment mapping
-SEGMENT_MAP = {
-    0: "Low Value",
-    1: "Medium Value",
-    2: "High Value"
-}
+SEGMENT_MAP = {0: "Low Value", 1: "Medium Value", 2: "High Value"}
 
 # Recommendations per segment
 RECOMMENDATIONS = {
     0: [
         "Send discount coupons",
         "Show budget-friendly products",
-        "Re-engagement email campaign"
+        "Re-engagement email campaign",
     ],
     1: [
         "Upsell premium features",
         "Loyalty rewards program",
-        "Personalized product recommendations"
+        "Personalized product recommendations",
     ],
-    2: [
-        "VIP membership offer",
-        "Exclusive early access",
-        "Premium customer support"
-    ]
+    2: ["VIP membership offer", "Exclusive early access", "Premium customer support"],
 }
 
 # Clustering features (subset for performance)
@@ -80,9 +73,13 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 if DB_TYPE == "sqlite":
     DATABASE_URL = f"sqlite:///{DATA_DIR / 'behaviour_ai.db'}"
 elif DB_TYPE == "postgresql":
-    DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    DATABASE_URL = (
+        f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    )
 elif DB_TYPE == "mysql":
-    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    DATABASE_URL = (
+        f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    )
 else:
     raise ValueError(f"Unsupported DB_TYPE: {DB_TYPE}")
 
