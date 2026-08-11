@@ -292,6 +292,8 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for the full guide.
 - The development server binds to `127.0.0.1` by default; reverse proxies and container deployments
   must bind deliberately (e.g. via Gunicorn config).
 
+See [SECURITY.md](SECURITY.md) for the vulnerability disclosure process.
+
 ## Documentation
 
 | Document                          | Purpose                                 |
