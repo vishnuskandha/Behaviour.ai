@@ -361,7 +361,9 @@ class BehaviourAnalyticsApp:
             from config import API_KEY
 
             protected_paths = {"/admin/metrics"}
-            is_protected_api = request.path.startswith("/api/") and request.path not in (
+            is_protected_api = request.path.startswith(
+                "/api/"
+            ) and request.path not in (
                 "/api/health",
                 "/api/info",
                 "/api/docs",
