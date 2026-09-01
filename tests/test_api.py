@@ -39,3 +39,8 @@ def test_predict_endpoint(client):
 def test_model_info_endpoint(client):
     resp = client.get("/api/model-info")
     assert resp.status_code in (200, 404)
+
+
+def test_admin_metrics_requires_api_key(app):
+    unauthenticated = app.test_client().get("/admin/metrics")
+    assert unauthenticated.status_code == 401
