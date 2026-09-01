@@ -358,31 +358,16 @@ class BehaviourAnalyticsApp:
 
         @self.app.before_request
         def require_api_key():
-            if request.path.startswith("/api/") and request.path not in (
+            from config import API_KEY
+
+            protected_paths = {"/admin/metrics"}
+            is_protected_api = request.path.startswith("/api/") and request.path not in (
                 "/api/health",
                 "/api/info",
                 "/api/docs",
-            ):
-                from config import API_KEY
-
-                protected_paths = {
-                    "/admin/metrics",
-                }
-                if API_KEY and request.headers.get("X-API-Key") != API_KEY:
-                    return (
-                        jsonify(
-                            {
-                                "status": "error",
-                                "message": "Unauthorized: Invalid or missing API Key",
-                            }
-                        ),
-                        401,
-                    )
-
-            elif request.path == "/admin/metrics":
-                from config import API_KEY
-
-                if API_KEY and request.headers.get("X-API-Key") != API_KEY:
+            )
+            if API_KEY and (is_protected_api or request.path in protected_paths):
+                if request.headers.get("X-API-Key") != API_KEY:
                     return (
                         jsonify(
                             {
