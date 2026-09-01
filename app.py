@@ -365,6 +365,23 @@ class BehaviourAnalyticsApp:
             ):
                 from config import API_KEY
 
+                protected_paths = {
+                    "/admin/metrics",
+                }
+                if API_KEY and request.headers.get("X-API-Key") != API_KEY:
+                    return (
+                        jsonify(
+                            {
+                                "status": "error",
+                                "message": "Unauthorized: Invalid or missing API Key",
+                            }
+                        ),
+                        401,
+                    )
+
+            elif request.path == "/admin/metrics":
+                from config import API_KEY
+
                 if API_KEY and request.headers.get("X-API-Key") != API_KEY:
                     return (
                         jsonify(
