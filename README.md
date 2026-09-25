@@ -1,4 +1,8 @@
+<div align="center">
+
 # BehaviourAI — Customer Behaviour Analytics Platform
+
+</div>
 
 
 <!-- README polish: repository metadata badges -->
