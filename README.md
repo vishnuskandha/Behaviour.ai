@@ -1,5 +1,15 @@
 # BehaviourAI — Customer Behaviour Analytics Platform
 
+
+<!-- README polish: repository metadata badges -->
+<p>
+  <a href="https://github.com/vishnuskandha/Behaviour.ai"><img alt="GitHub stars" src="https://img.shields.io/github/stars/vishnuskandha/Behaviour.ai?style=for-the-badge&logo=github&label=Stars"></a>
+  <a href="https://github.com/vishnuskandha/Behaviour.ai/fork"><img alt="GitHub forks" src="https://img.shields.io/github/forks/vishnuskandha/Behaviour.ai?style=for-the-badge&logo=github&label=Forks"></a>
+  <a href="https://github.com/vishnuskandha/Behaviour.ai/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/vishnuskandha/Behaviour.ai?style=for-the-badge&logo=github&label=Issues"></a>
+  <a href="https://github.com/vishnuskandha/Behaviour.ai/commits"><img alt="Last commit" src="https://img.shields.io/github/last-commit/vishnuskandha/Behaviour.ai?style=for-the-badge&logo=git&label=Updated"></a>
+</p>
+<!-- End README polish -->
+
 [![CI](https://github.com/vishnuskandha/Behaviour.ai/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/vishnuskandha/Behaviour.ai/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
